@@ -15,12 +15,17 @@
   auth.user_password.password = "${ACCESS_TOKEN?}"
   connection_name = "Fly logs stream"
 
-[transforms.log_json]
+[transforms.remapper]
   type = "remap"
   inputs = ["nats"]
   source = '''
   . = parse_json!(.message)
   '''
+
+[transforms.log_json]
+  type = "filter"
+  inputs = ["remapper"]
+  condition = 'contains("cuto", string!(.fly.app.name))'
 
 [sinks.fly_log_metrics_prometheus]
   type = "prometheus_exporter" # required
